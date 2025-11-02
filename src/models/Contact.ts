@@ -49,7 +49,7 @@ export class ContactModel {
   ): Omit<ContactDocument, "_id" | "createdAt" | "updatedAt"> {
     return {
       type: dto.type,
-      phase: ContactPhase.RAW,
+      phase: ContactPhase.CLEANED,
       name: dto.name,
       email: dto.email || null,
       phone: dto.phone || null,

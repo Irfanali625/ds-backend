@@ -8,8 +8,6 @@ const connectDB = async (): Promise<void> => {
     const mongoURI =
       process.env.MONGODB_URI || "mongodb://root:example@mongo:27017";
 
-      console.log("mongoURI", mongoURI);
-
     client = new MongoClient(mongoURI);
     await client.connect();
 
