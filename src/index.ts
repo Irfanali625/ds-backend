@@ -12,6 +12,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 800;
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8000";
 
 // Middleware
 app.use(cors());
@@ -45,7 +46,7 @@ async function startServer() {
     // Start server
     app.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
-      console.log(`Health check: http://localhost:${PORT}/health`);
+      console.log(`Health check: ${BACKEND_URL}:${PORT}/health`);
     });
   } catch (error: any) {
     console.error('Failed to start server:', error);
