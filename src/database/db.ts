@@ -6,14 +6,16 @@ let db: Db;
 const connectDB = async (): Promise<void> => {
   try {
     const mongoURI =
-      process.env.MONGODB_URI ||
-      "mongodb://localhost:27017/data-scraping";
+      process.env.MONGODB_URI || "mongodb://root:example@mongo:27017";
+
+      console.log("mongoURI", mongoURI);
 
     client = new MongoClient(mongoURI);
     await client.connect();
 
     // Extract database name from URI or use default
-    const dbName = mongoURI.split('/').pop()?.split('?').shift() || 'data-scraping';
+    const dbName =
+      mongoURI.split("/").pop()?.split("?").shift() || "data-scraping";
     db = client.db(dbName);
 
     console.log(
@@ -23,22 +25,25 @@ const connectDB = async (): Promise<void> => {
 
     // Create indexes for better performance
     try {
-      const contactsCollection = db.collection('contacts');
+      const contactsCollection = db.collection("contacts");
       await contactsCollection.createIndex({ type: 1, phase: 1 });
       await contactsCollection.createIndex({ phase: 1 });
       await contactsCollection.createIndex({ deliveredAt: 1 });
       // Note: contacts are shared/public - no userId index needed
-      
-      const userRecordsCollection = db.collection('user_records');
+
+      const userRecordsCollection = db.collection("user_records");
       await userRecordsCollection.createIndex({ userId: 1 });
       await userRecordsCollection.createIndex({ contactId: 1 });
-      
-      const usersCollection = db.collection('users');
+
+      const usersCollection = db.collection("users");
       await usersCollection.createIndex({ email: 1 }, { unique: true });
-      
-      console.log('✅ Database indexes created');
+
+      console.log("✅ Database indexes created");
     } catch (indexError) {
-      console.warn('⚠️ Warning: Could not create indexes (may already exist):', indexError);
+      console.warn(
+        "⚠️ Warning: Could not create indexes (may already exist):",
+        indexError
+      );
     }
 
     client.on("error", (err) => {
