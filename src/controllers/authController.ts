@@ -17,7 +17,7 @@ export class AuthController {
       }
 
       const user = await userRepository.create(userData);
-      const token = generateToken(user.id);
+      const token = generateToken(user);
 
       res.status(201).json({
         token,
@@ -51,7 +51,7 @@ export class AuthController {
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      const token = generateToken(user.id);
+      const token = generateToken(user);
 
       res.json({
         token,
