@@ -19,5 +19,9 @@ router.post('/csv', authenticateToken, upload.single('csvFile'), (req, res) =>
   phoneValidationController.validateCSV(req as any, res)
 );
 
+router.get('/history', authenticateToken, (req, res) => 
+  phoneValidationController.getHistory(req as any, res)
+);
+
 export default router;
 
