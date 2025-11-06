@@ -4,16 +4,36 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import phoneValidationRoutes from './routes/phoneValidationRoutes';
 import { connectDB } from './database/db';
+import { getFile } from './lib/minio';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost";
+const minIoBucket = process.env.MINIO_BUCKET ||'bucket'
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+app.get(`/${minIoBucket}/*`, async (req, res) => {
+  try {
+    const objectName = (req.params as any)[0];
+    const fileStream = await getFile(objectName);
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${objectName}"`
+    );
+    res.setHeader("Content-Type", "application/octet-stream");
+
+    fileStream.pipe(res);
+  } catch (err) {
+    console.error("Error sending file:", err);
+    res.status(404).json({ message: "File not found" });
+  }
+});
 
 app.use("/uploads", express.static("public/uploads"));
 

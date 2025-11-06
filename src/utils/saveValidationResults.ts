@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { uploadFileToMinIO } from "../lib/minio";
 
 interface SaveValidationParams {
   companyAbbr?: string;
@@ -54,7 +55,9 @@ export async function saveValidationResults({
   const filePath = path.join(dir, fileName);
   fs.writeFileSync(filePath, csvContent, "utf8");
 
-  const publicPath = `/uploads/csvs/${yearFull}/${month}/${fileName}`;
+  const csvBuffer = Buffer.from(csvContent, "utf8");
+  const publicPath = `csvs/${yearFull}/${month}/${fileName}`;
+  await uploadFileToMinIO(publicPath, csvBuffer);
 
-  return { fileName, publicPath, filePath };
+  return { fileName, publicPath };
 }
