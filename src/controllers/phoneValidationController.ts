@@ -7,7 +7,6 @@ import csvParser from "csv-parser";
 import { Readable } from "stream";
 import { AuthRequest } from "../middleware/auth";
 import { saveValidationResults } from "../utils/saveValidationResults";
-import { ValidationHistory } from "../utils/ValidationHistory";
 import { validationHistoryRepository } from "../repository/validationHistoryRepository";
 
 export class PhoneValidationController {
@@ -177,6 +176,25 @@ export class PhoneValidationController {
       res
         .status(500)
         .json({ error: "Failed to process CSV file", details: error.message });
+    }
+  }
+
+  async getHistory(req: AuthRequest, res: Response) {
+    try {
+      const userId = req!.user!.id;
+      if (!userId) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+
+      const history = await validationHistoryRepository.findByUserId(userId);
+
+      return res.json(history);
+    } catch (error: any) {
+      console.error("Error fetching validation history:", error);
+      res.status(500).json({
+        error: "Failed to fetch validation history",
+        details: error.message,
+      });
     }
   }
 }
