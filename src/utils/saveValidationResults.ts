@@ -9,15 +9,21 @@ interface SaveValidationParams {
   results: any[];
 }
 
+interface SaveValidationResult {
+  fileName: string;
+  publicPath: string;
+  minioUploaded: boolean;
+  minioError?: string;
+}
+
 export async function saveValidationResults({
   companyAbbr = "VNC",
   type,
   results,
-}: SaveValidationParams) {
+}: SaveValidationParams): Promise<SaveValidationResult> {
   if (!results || !results.length)
     throw new Error("No validation results provided");
 
-  // Format EST timestamp
   const now = new Date();
   const est = new Date(
     now.toLocaleString("en-US", { timeZone: "America/New_York" })
@@ -38,9 +44,9 @@ export async function saveValidationResults({
     yearFull,
     month
   );
+  
   fs.mkdirSync(dir, { recursive: true });
 
-  // Build CSV content
   const headers = [
     "Phone Number",
     "Valid",
@@ -69,12 +75,25 @@ export async function saveValidationResults({
 
   const csvBuffer = Buffer.from(csvContent, "utf8");
   const publicPath = `csvs/${yearFull}/${month}/${fileName}`;
+
+  let minioUploaded = false;
+  let minioError: Error | null = null;
   try {
     await uploadFileToMinIO(publicPath, csvBuffer);
+    minioUploaded = true;
   } catch (error) {
-    console.error("Error uploading file to MinIO:", error);
-    throw error;
+    minioError = error instanceof Error ? error : new Error(String(error));
+    console.error("Warning: Failed to upload file to MinIO (validation will continue):", {
+      error: minioError.message,
+      filePath: publicPath,
+      timestamp: new Date().toISOString(),
+    });
   }
 
-  return { fileName, publicPath };
+  return { 
+    fileName, 
+    publicPath,
+    minioUploaded,
+    minioError: minioError?.message,
+  };
 }
