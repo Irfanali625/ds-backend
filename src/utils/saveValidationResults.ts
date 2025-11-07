@@ -14,11 +14,14 @@ export async function saveValidationResults({
   type,
   results,
 }: SaveValidationParams) {
-  if (!results || !results.length) throw new Error("No validation results provided");
+  if (!results || !results.length)
+    throw new Error("No validation results provided");
 
   // Format EST timestamp
   const now = new Date();
-  const est = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const est = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/New_York" })
+  );
   const day = String(est.getDate()).padStart(2, "0");
   const month = String(est.getMonth() + 1).padStart(2, "0");
   const yearShort = String(est.getFullYear()).slice(-2);
@@ -27,7 +30,14 @@ export async function saveValidationResults({
 
   const fileName = `${companyAbbr}${day}${month}${yearShort}${hours}${minutes}.csv`;
   const yearFull = est.getFullYear().toString();
-  const dir = path.join(process.cwd(), "public", "uploads", "csvs", yearFull, month);
+  const dir = path.join(
+    process.cwd(),
+    "public",
+    "uploads",
+    "csvs",
+    yearFull,
+    month
+  );
   fs.mkdirSync(dir, { recursive: true });
 
   // Build CSV content
@@ -47,7 +57,9 @@ export async function saveValidationResults({
     r.countryCode || "",
     r.formattedNumber || "",
     r.nationalFormat || "",
-    new Date(r.validatedAt).toLocaleString("en-US", { timeZone: "America/New_York" }),
+    new Date(r.validatedAt).toLocaleString("en-US", {
+      timeZone: "America/New_York",
+    }),
   ]);
 
   const csvContent = [headers, ...rows].map((r) => r.join(",")).join("\n");
@@ -57,7 +69,12 @@ export async function saveValidationResults({
 
   const csvBuffer = Buffer.from(csvContent, "utf8");
   const publicPath = `csvs/${yearFull}/${month}/${fileName}`;
-  await uploadFileToMinIO(publicPath, csvBuffer);
+  try {
+    await uploadFileToMinIO(publicPath, csvBuffer);
+  } catch (error) {
+    console.error("Error uploading file to MinIO:", error);
+    throw error;
+  }
 
   return { fileName, publicPath };
 }
