@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import phoneValidationRoutes from './routes/phoneValidationRoutes';
+import subscriptionRoutes from './routes/subscriptionRoutes';
 import { connectDB } from './database/db';
 import { getFile } from './lib/minio';
 
@@ -39,6 +40,7 @@ app.use("/uploads", express.static("public/uploads"));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/phone-validation', phoneValidationRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Data Scraping API is running' });
