@@ -8,6 +8,7 @@ import { Readable } from "stream";
 import { AuthRequest } from "../middleware/auth";
 import { saveValidationResults } from "../utils/saveValidationResults";
 import { validationHistoryRepository } from "../repository/validationHistoryRepository";
+import { SubscriptionService } from "../services/subscriptionService";
 
 export class PhoneValidationController {
   async validateSingle(req: AuthRequest, res: Response) {
@@ -15,6 +16,20 @@ export class PhoneValidationController {
       const { phoneNumber } = req.body;
       if (!phoneNumber) {
         return res.status(400).json({ error: "Phone number is required" });
+      }
+
+      const userId = req!.user!.id;
+      const canValidate = await SubscriptionService.canUserValidate(userId);
+      if (!canValidate) {
+        const limit = await SubscriptionService.getValidationLimit(userId);
+        return res.status(403).json({
+          error: "Validation limit reached",
+          message:
+            limit.message ||
+            "Please upgrade to premium to continue validating phone numbers.",
+          limitType: limit.limitType,
+          requiresUpgrade: true,
+        });
       }
 
       const r = await validatePhoneNumber(phoneNumber);
@@ -48,6 +63,8 @@ export class PhoneValidationController {
         data: {
           result: minimal,
           downloadUrl: saved.publicPath,
+          minioUploaded: saved.minioUploaded,
+          ...(saved.minioError && { minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}` }),
         },
       });
     } catch (error: any) {
@@ -66,6 +83,33 @@ export class PhoneValidationController {
         return res
           .status(400)
           .json({ error: "Phone numbers array is required" });
+      }
+
+      const userId = req!.user!.id;
+      const limit = await SubscriptionService.getValidationLimit(userId);
+
+      if (
+        limit.limitType === "free" &&
+        limit.remainingFree < phoneNumbers.length
+      ) {
+        return res.status(403).json({
+          error: "Insufficient free validations",
+          message: `You have ${limit.remainingFree} free validation(s) remaining. You requested ${phoneNumbers.length} validation(s). Please upgrade to premium for unlimited validations.`,
+          remainingFree: limit.remainingFree,
+          requested: phoneNumbers.length,
+          requiresUpgrade: true,
+        });
+      }
+
+      if (!limit.canValidate) {
+        return res.status(403).json({
+          error: "Validation limit reached",
+          message:
+            limit.message ||
+            "Please upgrade to premium to continue validating phone numbers.",
+          limitType: limit.limitType,
+          requiresUpgrade: true,
+        });
       }
 
       const results = await validateBulkPhoneNumbers(phoneNumbers);
@@ -99,8 +143,9 @@ export class PhoneValidationController {
           result: minimal,
           processedAt: new Date().toISOString(),
         },
-
         downloadUrl: saved.publicPath,
+        minioUploaded: saved.minioUploaded,
+        ...(saved.minioError && { minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}` }),
       });
     } catch (error: any) {
       console.error("Error validating bulk:", error);
@@ -116,6 +161,20 @@ export class PhoneValidationController {
       if (!req.file)
         return res.status(400).json({ error: "CSV file is required" });
 
+      const userId = req!.user!.id;
+      const limit = await SubscriptionService.getValidationLimit(userId);
+
+      if (limit.limitType === "exceeded") {
+        return res.status(403).json({
+          error: "Validation limit reached",
+          message:
+            limit.message ||
+            "Please upgrade to premium to continue validating phone numbers.",
+          limitType: limit.limitType,
+          requiresUpgrade: true,
+        });
+      }
+
       const phoneNumbers: string[] = [];
       const stream = Readable.from(req.file!.buffer);
 
@@ -130,6 +189,19 @@ export class PhoneValidationController {
             return res
               .status(400)
               .json({ error: "No phone numbers found in CSV file" });
+
+          if (
+            limit.limitType === "free" &&
+            limit.remainingFree < phoneNumbers.length
+          ) {
+            return res.status(403).json({
+              error: "Insufficient free validations",
+              message: `You have ${limit.remainingFree} free validation(s) remaining. CSV contains ${phoneNumbers.length} phone number(s). Please upgrade to premium for unlimited validations.`,
+              remainingFree: limit.remainingFree,
+              requested: phoneNumbers.length,
+              requiresUpgrade: true,
+            });
+          }
 
           const validationResults = await validateBulkPhoneNumbers(
             phoneNumbers
@@ -165,6 +237,8 @@ export class PhoneValidationController {
               processedAt: new Date().toISOString(),
             },
             downloadUrl: saved.publicPath,
+            minioUploaded: saved.minioUploaded,
+            ...(saved.minioError && { minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}` }),
           });
         })
         .on("error", (err) => {

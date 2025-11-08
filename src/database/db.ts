@@ -36,6 +36,15 @@ const connectDB = async (): Promise<void> => {
       const usersCollection = db.collection("users");
       await usersCollection.createIndex({ email: 1 }, { unique: true });
 
+      const subscriptionsCollection = db.collection("subscriptions");
+      await subscriptionsCollection.createIndex({ userId: 1, status: 1, endDate: 1 });
+      await subscriptionsCollection.createIndex({ userId: 1 });
+      await subscriptionsCollection.createIndex({ endDate: 1 });
+
+      const paymentsCollection = db.collection("payments");
+      await paymentsCollection.createIndex({ userId: 1 });
+      await paymentsCollection.createIndex({ subscriptionId: 1 });
+
       console.log("✅ Database indexes created");
     } catch (indexError) {
       console.warn(
