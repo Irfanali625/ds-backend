@@ -4,6 +4,8 @@ import { SubscriptionService, PREMIUM_PRICE } from '../services/subscriptionServ
 import { subscriptionRepository } from '../repository/subscriptionRepository';
 import { paymentRepository } from '../repository/paymentRepository';
 import { PaymentMethod } from '../models/Payment';
+import { createStripeCheckoutSession } from '../services/payments/stripeService';
+import { createSquareCheckoutLink } from '../services/payments/squareService';
 
 export class SubscriptionController {
   async getStatus(req: AuthRequest, res: Response) {
@@ -31,6 +33,71 @@ export class SubscriptionController {
         error: 'Failed to fetch subscription status',
         details: error.message,
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      });
+    }
+  }
+
+  async createCheckout(req: AuthRequest, res: Response) {
+    try {
+      const userId = req!.user!.id;
+      const { provider, successUrl, cancelUrl } = req.body;
+
+      if (!provider || !successUrl) {
+        return res.status(400).json({
+          error: 'Provider and successUrl are required',
+        });
+      }
+
+      const activeSubscription = await subscriptionRepository.findActiveByUserId(userId);
+      if (activeSubscription) {
+        return res.status(400).json({
+          error: 'You already have an active subscription',
+          subscription: activeSubscription,
+        });
+      }
+
+      const amountCents = Math.round(PREMIUM_PRICE * 100);
+
+      switch (provider.toLowerCase()) {
+        case 'stripe': {
+          const session = await createStripeCheckoutSession({
+            userId,
+            successUrl,
+            cancelUrl: cancelUrl || successUrl,
+            amountCents,
+          });
+
+          return res.json({
+            provider: PaymentMethod.STRIPE,
+            checkoutUrl: session.url,
+            paymentId: session.paymentId,
+          });
+        }
+        case 'square': {
+          const link = await createSquareCheckoutLink({
+            userId,
+            successUrl,
+            cancelUrl,
+            amountCents,
+          });
+
+          return res.json({
+            provider: PaymentMethod.SQUARE,
+            checkoutUrl: link.url,
+            paymentId: link.paymentId,
+            paymentLinkId: link.paymentLinkId,
+          });
+        }
+        default:
+          return res.status(400).json({
+            error: 'Unsupported payment provider',
+          });
+      }
+    } catch (error: any) {
+      console.error('Error creating checkout session:', error);
+      res.status(500).json({
+        error: 'Failed to create checkout session',
+        details: error.message,
       });
     }
   }

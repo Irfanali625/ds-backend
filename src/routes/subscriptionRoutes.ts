@@ -10,6 +10,10 @@ router.get('/status', authenticateToken, (req, res) =>
   subscriptionController.getStatus(req as any, res)
 );
 
+router.post('/checkout', authenticateToken, (req, res) =>
+  subscriptionController.createCheckout(req as any, res)
+);
+
 router.post('/create', authenticateToken, (req, res) => 
   subscriptionController.createSubscription(req as any, res)
 );

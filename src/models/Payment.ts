@@ -10,13 +10,14 @@ export enum PaymentStatus {
 export enum PaymentMethod {
   STRIPE = 'STRIPE',
   PAYPAL = 'PAYPAL',
+  SQUARE = 'SQUARE',
   MANUAL = 'MANUAL'
 }
 
 export interface Payment {
   id: string;
   userId: string;
-  subscriptionId: string;
+  subscriptionId?: string;
   amount: number;
   currency: string;
   status: PaymentStatus;
@@ -30,7 +31,7 @@ export interface Payment {
 export interface PaymentDocument {
   _id: ObjectId;
   userId: string;
-  subscriptionId: string;
+  subscriptionId?: string;
   amount: number;
   currency: string;
   status: PaymentStatus;
@@ -43,7 +44,7 @@ export interface PaymentDocument {
 
 export interface CreatePaymentDto {
   userId: string;
-  subscriptionId: string;
+  subscriptionId?: string;
   amount: number;
   currency?: string;
   method?: PaymentMethod;
