@@ -7,17 +7,20 @@ const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
 if (!stripeSecretKey) {
-  console.warn("STRIPE_SECRET_KEY is not set. Stripe payments will be unavailable.");
+  console.warn(
+    "STRIPE_SECRET_KEY is not set. Stripe payments will be unavailable."
+  );
 }
 
 export const stripeClient = stripeSecretKey
   ? new Stripe(stripeSecretKey, {
-      apiVersion: "2023-10-16",
+      apiVersion: "2022-11-15",
     })
   : null;
 
 const DEFAULT_CURRENCY = process.env.STRIPE_CURRENCY || "usd";
-const STRIPE_PRODUCT_NAME = process.env.STRIPE_PRODUCT_NAME || "Premium Subscription";
+const STRIPE_PRODUCT_NAME =
+  process.env.STRIPE_PRODUCT_NAME || "Premium Subscription";
 
 interface CreateStripeCheckoutParams {
   userId: string;
@@ -86,7 +89,10 @@ export async function createStripeCheckoutSession({
   };
 }
 
-export async function handleStripeWebhook(rawBody: Buffer, signature: string | undefined) {
+export async function handleStripeWebhook(
+  rawBody: Buffer,
+  signature: string | undefined
+) {
   if (!stripeClient) {
     throw new Error("Stripe client not configured");
   }
@@ -97,7 +103,11 @@ export async function handleStripeWebhook(rawBody: Buffer, signature: string | u
     throw new Error("Missing Stripe-Signature header");
   }
 
-  const event = stripeClient.webhooks.constructEvent(rawBody, signature, stripeWebhookSecret);
+  const event = stripeClient.webhooks.constructEvent(
+    rawBody,
+    signature,
+    stripeWebhookSecret
+  );
 
   switch (event.type) {
     case "checkout.session.completed": {
@@ -148,4 +158,3 @@ export async function handleStripeWebhook(rawBody: Buffer, signature: string | u
       break;
   }
 }
-
