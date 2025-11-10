@@ -74,6 +74,44 @@ export class PaymentRepository {
       return null;
     }
   }
+
+  async updateSubscription(id: string, subscriptionId: string): Promise<Payment | null> {
+    try {
+      const result = await this.getCollection().findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            subscriptionId,
+            updatedAt: new Date(),
+          },
+        },
+        { returnDocument: 'after' }
+      );
+
+      return result ? PaymentModel.toEntity(result) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async updateMetadata(id: string, metadata: Record<string, any>): Promise<Payment | null> {
+    try {
+      const result = await this.getCollection().findOneAndUpdate(
+        { _id: new ObjectId(id) },
+        {
+          $set: {
+            metadata,
+            updatedAt: new Date(),
+          },
+        },
+        { returnDocument: 'after' }
+      );
+
+      return result ? PaymentModel.toEntity(result) : null;
+    } catch {
+      return null;
+    }
+  }
 }
 
 export const paymentRepository = new PaymentRepository();

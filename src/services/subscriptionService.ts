@@ -101,6 +101,34 @@ export class SubscriptionService {
     }
   }
 
+  static async createPremiumSubscriptionForPayment({
+    userId,
+    paymentId,
+    paymentMethod,
+  }: {
+    userId: string;
+    paymentId: string;
+    paymentMethod: PaymentMethod;
+  }): Promise<{ subscription: any; payment: any }> {
+    const now = new Date();
+    const endDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    const subscription = await subscriptionRepository.create({
+      userId,
+      plan: SubscriptionPlan.PREMIUM,
+      startDate: now,
+      endDate,
+    });
+
+    const payment = await paymentRepository.updateSubscription(paymentId, subscription.id);
+
+    if (!payment) {
+      throw new Error(`Failed to update payment ${paymentId} with subscription information`);
+    }
+
+    return { subscription, payment };
+  }
+
   static async createPremiumSubscription(
     userId: string,
     paymentMethod: PaymentMethod = PaymentMethod.MANUAL
