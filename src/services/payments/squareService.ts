@@ -46,7 +46,6 @@ export async function createSquareCheckoutLink({
     throw new Error("Square client not configured");
   }
 
-  // Create payment record in pending state
   const payment = await paymentRepository.create({
     userId,
     amount: amountCents / 100,
@@ -166,7 +165,6 @@ export async function handleSquareWebhook({ rawBody, signature, url }: SquareWeb
         return;
       }
 
-      // Only complete on completed payments
       if (paymentObject.status !== "COMPLETED") {
         return;
       }
