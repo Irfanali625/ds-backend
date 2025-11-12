@@ -29,9 +29,9 @@ export class SubscriptionRepository {
       const doc = await this.getCollection().findOne({
         userId,
         status: SubscriptionStatus.ACTIVE,
-        endDate: { $gt: now }, // Not expired
+        endDate: { $gt: now },
       }, {
-        sort: { createdAt: -1 } // Get the most recent active subscription
+        sort: { createdAt: -1 }
       });
 
       return doc ? SubscriptionModel.toEntity(doc) : null;

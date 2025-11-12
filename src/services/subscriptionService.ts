@@ -5,7 +5,7 @@ import { PaymentStatus, PaymentMethod } from "../models/Payment";
 import { getDB } from "../database/db";
 
 export const FREE_TIER_LIMIT = 5;
-export const PREMIUM_PRICE = 19;
+export const PREMIUM_PRICE = 19.99;
 
 export interface ValidationLimit {
   canValidate: boolean;
