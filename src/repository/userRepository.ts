@@ -28,7 +28,7 @@ export class UserRepository {
     }
   }
 
-  async update(userData: any): Promise<User> {
+  async update(userData: any): Promise<any> {
     const existingUser = (await this.findByEmail(userData.email)) as any;
 
     if (existingUser && existingUser.id.toString() !== userData.id) {
