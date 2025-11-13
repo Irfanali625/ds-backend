@@ -6,7 +6,6 @@ import { upload } from '../middleware/upload';
 const router = Router();
 const phoneValidationController = new PhoneValidationController();
 
-// All routes require authentication
 router.post('/single', authenticateToken, (req, res) => 
   phoneValidationController.validateSingle(req as any, res)
 );

@@ -1,15 +1,17 @@
-import { ObjectId } from 'mongodb';
-import bcrypt from 'bcryptjs';
-import { User, CreateUserDto } from '../types';
-import { getDB } from '../database/db';
+import { ObjectId } from "mongodb";
+import bcrypt from "bcryptjs";
+import { User, CreateUserDto } from "../types";
+import { getDB } from "../database/db";
 
 export class UserRepository {
   private getCollection() {
-    return getDB().collection('users');
+    return getDB().collection("users");
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    const user = await this.getCollection().findOne({ email: email.toLowerCase() });
+    const user = await this.getCollection().findOne({
+      email: email.toLowerCase(),
+    });
     if (!user) return null;
 
     return this.mapDocumentToUser(user);
@@ -17,17 +19,50 @@ export class UserRepository {
 
   async findById(id: string): Promise<User | null> {
     try {
-      const user = await this.getCollection().findOne({ _id: new ObjectId(id) });
+      const user = await this.getCollection().findOne({
+        _id: new ObjectId(id),
+      });
       return user ? this.mapDocumentToUser(user) : null;
     } catch {
       return null;
     }
   }
 
+  async update(userData: any): Promise<User> {
+    const existingUser = (await this.findByEmail(userData.email)) as any;
+
+    if (existingUser && existingUser.id.toString() !== userData.id) {
+      throw new Error("User with this email already exists");
+    }
+
+    const updateFields: any = {
+      name: userData.name,
+      email: userData.email,
+      updatedAt: new Date(),
+    };
+
+    if (userData.password) {
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      updateFields.password = hashedPassword;
+    }
+
+    const result = await this.getCollection().updateOne(
+      { _id: new ObjectId(userData.id) },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error("User not found");
+    }
+
+    const updatedUser = await this.findById(userData.id);
+    return updatedUser!;
+  }
+
   async create(userData: CreateUserDto): Promise<User> {
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new Error("User with this email already exists");
     }
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
@@ -45,7 +80,9 @@ export class UserRepository {
   }
 
   async verifyPassword(email: string, password: string): Promise<User | null> {
-    const userDoc = await this.getCollection().findOne({ email: email.toLowerCase() });
+    const userDoc = await this.getCollection().findOne({
+      email: email.toLowerCase(),
+    });
     if (!userDoc) return null;
 
     const isValid = await bcrypt.compare(password, userDoc.password);
@@ -59,10 +96,10 @@ export class UserRepository {
       id: doc._id.toString(),
       email: doc.email,
       name: doc.name,
+      password: doc.password,
       createdAt: doc.createdAt?.toISOString() || new Date().toISOString(),
     };
   }
 }
 
 export const userRepository = new UserRepository();
-
