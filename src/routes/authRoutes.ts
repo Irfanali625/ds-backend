@@ -8,6 +8,7 @@ const authController = new AuthController();
 router.post('/register', (req, res) => authController.register(req, res));
 router.post('/login', (req, res) => authController.login(req, res));
 router.get('/me', authenticateToken, (req, res) => authController.me(req, res));
+router.post('/profile/update', authenticateToken, (req, res) => authController.update(req, res));
 
 export default router;
 
