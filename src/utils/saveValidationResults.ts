@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { uploadFileToMinIO } from "../lib/minio";
+import { appendToSheet } from "../lib/googleSheets";
 
 interface SaveValidationParams {
   companyAbbr?: string;
@@ -70,6 +71,18 @@ export async function saveValidationResults({
       timeZone: "America/New_York",
     }),
   ]);
+
+   try {
+    await appendToSheet({
+      spreadsheetId: "17hKoYIM3WiUmOB-dtn7ey1PtQLVboODHOUtPwiwFWcU",
+      range: "Sheet1!A:H",
+      values: rows,
+    });
+
+    console.log("✔ Added to Google Sheet");
+  } catch (error) {
+    console.error("❌ Failed to write to Google Sheet", error);
+  }
 
   const csvContent = [headers, ...rows].map((r) => r.join(",")).join("\n");
 
