@@ -4,6 +4,7 @@ import { getDB } from "../database/db";
 export interface ValidationHistory {
   id: string;
   userId: string;
+  phoneType: "B2B" | "B2C";
   type: "single" | "bulk" | "csv";
   filePath: string;
   total: number;
@@ -12,6 +13,7 @@ export interface ValidationHistory {
 
 export interface CreateValidationHistoryDto {
   userId: string;
+  phoneType: "B2B" | "B2C";
   type: "single" | "bulk" | "csv";
   filePath: string;
   total: number;
@@ -29,6 +31,7 @@ export class ValidationHistoryRepository {
     const now = new Date();
     const doc = {
       userId: data.userId,
+      phoneType: data.phoneType,
       type: data.type,
       filePath: data.filePath,
       total: data.total,
@@ -66,6 +69,7 @@ export class ValidationHistoryRepository {
     return {
       id: doc._id.toString(),
       userId: doc.userId,
+      phoneType: doc.phoneType,
       type: doc.type,
       filePath: doc.filePath,
       total: doc.total,

@@ -13,7 +13,7 @@ import { SubscriptionService } from "../services/subscriptionService";
 export class PhoneValidationController {
   async validateSingle(req: AuthRequest, res: Response) {
     try {
-      const { phoneNumber } = req.body;
+      const { phoneNumber, phoneType } = req.body;
       if (!phoneNumber) {
         return res.status(400).json({ error: "Phone number is required" });
       }
@@ -48,10 +48,12 @@ export class PhoneValidationController {
 
       const saved = await saveValidationResults({
         type: "single",
+        phoneType,
         results: minimal,
       });
 
       await validationHistoryRepository.create({
+        phoneType: phoneType,
         userId: req!.user!.id,
         type: "single",
         filePath: saved.publicPath,
@@ -64,7 +66,9 @@ export class PhoneValidationController {
           result: minimal,
           downloadUrl: saved.publicPath,
           minioUploaded: saved.minioUploaded,
-          ...(saved.minioError && { minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}` }),
+          ...(saved.minioError && {
+            minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}`,
+          }),
         },
       });
     } catch (error: any) {
@@ -78,7 +82,7 @@ export class PhoneValidationController {
 
   async validateBulk(req: AuthRequest, res: Response) {
     try {
-      const { phoneNumbers } = req.body;
+      const { phoneNumbers, phoneType } = req.body;
       if (!Array.isArray(phoneNumbers) || phoneNumbers.length === 0) {
         return res
           .status(400)
@@ -125,10 +129,12 @@ export class PhoneValidationController {
 
       const saved = await saveValidationResults({
         type: "bulk",
+        phoneType,
         results: minimal,
       });
 
       await validationHistoryRepository.create({
+        phoneType: phoneType,
         userId: req!.user!.id,
         type: "bulk",
         filePath: saved.publicPath,
@@ -145,7 +151,9 @@ export class PhoneValidationController {
         },
         downloadUrl: saved.publicPath,
         minioUploaded: saved.minioUploaded,
-        ...(saved.minioError && { minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}` }),
+        ...(saved.minioError && {
+          minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}`,
+        }),
       });
     } catch (error: any) {
       console.error("Error validating bulk:", error);
@@ -160,6 +168,8 @@ export class PhoneValidationController {
     try {
       if (!req.file)
         return res.status(400).json({ error: "CSV file is required" });
+
+      const { phoneType } = req.body;
 
       const userId = req!.user!.id;
       const limit = await SubscriptionService.getValidationLimit(userId);
@@ -218,10 +228,12 @@ export class PhoneValidationController {
 
           const saved = await saveValidationResults({
             type: "csv",
+            phoneType,
             results: minimal,
           });
 
           await validationHistoryRepository.create({
+            phoneType: phoneType,
             userId: req!.user!.id,
             type: "csv",
             filePath: saved.publicPath,
@@ -238,7 +250,9 @@ export class PhoneValidationController {
             },
             downloadUrl: saved.publicPath,
             minioUploaded: saved.minioUploaded,
-            ...(saved.minioError && { minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}` }),
+            ...(saved.minioError && {
+              minioWarning: `File saved locally but MinIO upload failed: ${saved.minioError}`,
+            }),
           });
         })
         .on("error", (err) => {
