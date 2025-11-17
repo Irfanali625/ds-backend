@@ -5,3 +5,4 @@ dist/
 data/
 *.log
 public/uploads/
+rm src/services/json/google-service-account.json
