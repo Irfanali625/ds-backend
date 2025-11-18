@@ -139,7 +139,7 @@ export async function saveValidationResults({
     r.countryCode || "",
     r.formattedNumber || "",
     r.nationalFormat || "",
-    r.isValid ? r.cleanedNumber || r.formattedNumber || "" : "",
+    r.isValid ? (r.cleanedNumber || r.formattedNumber || "") : "",
     new Date(r.validatedAt).toLocaleString("en-US", {
       timeZone: "America/New_York",
     }),
