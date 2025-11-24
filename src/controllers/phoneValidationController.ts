@@ -18,19 +18,20 @@ export class PhoneValidationController {
         return res.status(400).json({ error: "Phone number is required" });
       }
 
-      const userId = req!.user!.id;
-      const canValidate = await SubscriptionService.canUserValidate(userId);
-      if (!canValidate) {
-        const limit = await SubscriptionService.getValidationLimit(userId);
-        return res.status(403).json({
-          error: "Validation limit reached",
-          message:
-            limit.message ||
-            "Please upgrade to premium to continue validating phone numbers.",
-          limitType: limit.limitType,
-          requiresUpgrade: true,
-        });
-      }
+      // Well be Set later
+      // const userId = req!.user!.id;
+      // const canValidate = await SubscriptionService.canUserValidate(userId);
+      // if (!canValidate) {
+      //   const limit = await SubscriptionService.getValidationLimit(userId);
+      //   return res.status(403).json({
+      //     error: "Validation limit reached",
+      //     message:
+      //       limit.message ||
+      //       "Please upgrade to premium to continue validating phone numbers.",
+      //     limitType: limit.limitType,
+      //     requiresUpgrade: true,
+      //   });
+      // }
 
       const r = await validatePhoneNumber(phoneNumber);
 
@@ -92,29 +93,30 @@ export class PhoneValidationController {
       const userId = req!.user!.id;
       const limit = await SubscriptionService.getValidationLimit(userId);
 
-      if (
-        limit.limitType === "free" &&
-        limit.remainingFree < phoneNumbers.length
-      ) {
-        return res.status(403).json({
-          error: "Insufficient free validations",
-          message: `You have ${limit.remainingFree} free validation(s) remaining. You requested ${phoneNumbers.length} validation(s). Please upgrade to premium for unlimited validations.`,
-          remainingFree: limit.remainingFree,
-          requested: phoneNumbers.length,
-          requiresUpgrade: true,
-        });
-      }
+      // Well be Set later
+      // if (
+      //   limit.limitType === "free" &&
+      //   limit.remainingFree < phoneNumbers.length
+      // ) {
+      //   return res.status(403).json({
+      //     error: "Insufficient free validations",
+      //     message: `You have ${limit.remainingFree} free validation(s) remaining. You requested ${phoneNumbers.length} validation(s). Please upgrade to premium for unlimited validations.`,
+      //     remainingFree: limit.remainingFree,
+      //     requested: phoneNumbers.length,
+      //     requiresUpgrade: true,
+      //   });
+      // }
 
-      if (!limit.canValidate) {
-        return res.status(403).json({
-          error: "Validation limit reached",
-          message:
-            limit.message ||
-            "Please upgrade to premium to continue validating phone numbers.",
-          limitType: limit.limitType,
-          requiresUpgrade: true,
-        });
-      }
+      // if (!limit.canValidate) {
+      //   return res.status(403).json({
+      //     error: "Validation limit reached",
+      //     message:
+      //       limit.message ||
+      //       "Please upgrade to premium to continue validating phone numbers.",
+      //     limitType: limit.limitType,
+      //     requiresUpgrade: true,
+      //   });
+      // }
 
       const results = await validateBulkPhoneNumbers(phoneNumbers);
       const minimal = results.map((r) => ({
@@ -174,16 +176,17 @@ export class PhoneValidationController {
       const userId = req!.user!.id;
       const limit = await SubscriptionService.getValidationLimit(userId);
 
-      if (limit.limitType === "exceeded") {
-        return res.status(403).json({
-          error: "Validation limit reached",
-          message:
-            limit.message ||
-            "Please upgrade to premium to continue validating phone numbers.",
-          limitType: limit.limitType,
-          requiresUpgrade: true,
-        });
-      }
+      // Well be Set later
+      // if (limit.limitType === "exceeded") {
+      //   return res.status(403).json({
+      //     error: "Validation limit reached",
+      //     message:
+      //       limit.message ||
+      //       "Please upgrade to premium to continue validating phone numbers.",
+      //     limitType: limit.limitType,
+      //     requiresUpgrade: true,
+      //   });
+      // }
 
       const phoneNumbers: string[] = [];
       const stream = Readable.from(req.file!.buffer);
