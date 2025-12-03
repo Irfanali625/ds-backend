@@ -19,10 +19,10 @@ interface SaveValidationResult {
 }
 
 export const SHEET_MAP: Record<string, string> = {
-  B2B_VALID: "17hKoYIM3WiUmOB-dtn7ey1PtQLVboODHOUtPwiwFWcU",
-  B2B_INVALID: "1pb29ycyhcZSGPfUJOqoj5vh9SR9YwedKtPZjrm0RBHY",
-  B2C_VALID: "1X1dN3c6kw7DwXL_z2JS0FrD_eGv9RK_M6o51t8VovBI",
-  B2C_INVALID: "1-gICoZVsh01FRFMV8txiNkZzFukAHKerEj9iGbHx5sk",
+  B2B_VALID: "1JTpQ9Z2seYQya6QPHaR5nQxTn75doFQj3CQ5NqtQEMg",
+  B2B_INVALID: "1DNg5h2GH8UMlFotASFpbzRIrQ0NuoagIix-I57qdfCw",
+  B2C_VALID: "1QqIb2J93wa5MfNCuS9bh1CXzRdpn-fGqRGa0BOTqkbo",
+  B2C_INVALID: "1mbw4KQ2Y3T6rpSqZHtptaMKJZV6HmT5fr2OZykw_qok",
   B2B_MASTER: "1-ca_accIc24i8LPQlYfNPIZkOOI8sIT28rIQkuA-geE",
   B2C_MASTER: "1fwT4i65nmNKpgNQ8c--IFkpCnq3A1GoFQU8u_bf2lak",
 };
