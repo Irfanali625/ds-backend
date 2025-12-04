@@ -16,6 +16,12 @@
     RUN npm ci --only=production --legacy-peer-deps
     
     COPY --from=builder /app/dist ./dist
+
+    # Create missing folder structure
+    RUN mkdir -p src/services/json
+
+    # Copy Google service account credentials
+    COPY src/services/json/google-service-account.json ./src/services/json/google-service-account.json
     
     EXPOSE 8000
     CMD ["npm", "start"]
